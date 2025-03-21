@@ -1,0 +1,4 @@
+# Compartilhamento NFS para Clonezilla
+/nfsshare *(ro,sync,no_subtree_check,no_root_squash)
+/www *(rw,sync,no_subtree_check,no_root_squash)
+

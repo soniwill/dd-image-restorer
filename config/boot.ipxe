@@ -1,0 +1,33 @@
+#!ipxe
+dhcp
+menu iPXE Boot Menu
+item local Boot from local disk
+item clonezilla_restore Boot Clonezilla (Interactive Restore to sda)
+item shell Open iPXE Shell
+choose --timeout 10000 option && goto ${option}
+
+:local
+echo Bootando do disco local em 10 segundos. Pressione Ctrl+C para cancelar.
+set count 10
+:countdown
+echo Bootando em ${count}...
+sleep 1
+iseq ${count} 1 && exit
+set count ${count:-1}
+goto countdown
+
+:clonezilla_restore
+kernel http://${next-server}/clonezilla/live/vmlinuz boot=live username=user union=overlay config components quiet noswap edd=on nomodeset nodmraid locales=pt_BR.UTF-8 keyboard-layouts=br \
+    ocs_preload=http://${next-server}/clonezilla/scripts/restore-image.sh \
+    ocs_repository="nfs://${next-server}/nfsshare/" \
+    ocs_live_run="bash /opt/restore-image.sh ${next-server}" \
+    ocs_live_extra_param="" \
+    ocs_live_batch=no net.ifnames=0 nosplash noprompt \
+    fetch=http://${next-server}/clonezilla/live/filesystem.squashfs
+
+initrd http://${next-server}/clonezilla/live/initrd.img
+boot
+
+:shell
+shell
+

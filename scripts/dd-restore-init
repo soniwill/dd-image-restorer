@@ -1,0 +1,36 @@
+#!/bin/sh
+# Script init para ambiente mínimo de restauração de imagens
+
+# Montar sistemas de arquivos essenciais
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t devtmpfs devtmpfs /dev
+mkdir -p /dev/pts
+mount -t devpts devpts /dev/pts
+
+# Configurar rede se não estiver configurada
+if ! ip addr show | grep -q "inet " ; then
+    udhcpc -i $(ls /sys/class/net/ | grep -v lo | head -n 1)
+fi
+
+# Montar o diretório NFS compartilhado
+mkdir -p /nfsshare
+mkdir -p /dd-restore
+
+# Tente montar o NFS que contém as imagens e scripts
+mount -o nolock ${nfsroot} /nfsshare
+if [ $? -ne 0 ]; then
+    echo "Erro ao montar o compartilhamento NFS. Tentando IP do servidor..." > /dev/console
+    # Extrair o IP do servidor da variável nfsroot
+    server_ip=$(echo ${nfsroot} | cut -d':' -f1)
+    mount -o nolock ${server_ip}:/nfsshare /nfsshare
+fi
+
+# Copiar scripts de restauração para o ambiente local
+cp -r /nfsshare/dd-restore/* /dd-restore/
+chmod +x /dd-restore/dd-restore-menu.sh
+
+# Iniciar o script de menu
+clear
+echo "Iniciando ambiente de restauração DD..." > /dev/console
+exec /dd-restore/dd-restore-menu.sh

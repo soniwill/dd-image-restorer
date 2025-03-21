@@ -1,0 +1,20 @@
+DEFAULT menu.c32
+PROMPT 0
+TIMEOUT 300
+ONTIMEOUT local
+
+MENU TITLE PXE Boot Menu
+
+LABEL local
+  MENU LABEL Boot from local disk
+  LOCALBOOT 0
+
+LABEL clonezilla
+  MENU LABEL Boot Clonezilla Live
+  KERNEL memdisk
+  INITRD clonezilla.img
+  APPEND iso raw
+
+LABEL ipxe
+  MENU LABEL iPXE Boot Menu
+  KERNEL bios/undionly.kpxe
